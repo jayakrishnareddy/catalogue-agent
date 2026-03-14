@@ -333,12 +333,12 @@ export default function HomePage() {
                 key={product.id}
                 className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
-                {/* Image */}
+                {/* Image: use product.imageUrl when set (same photo for all products from one image), else preview by index */}
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
-                  {i < previewUrls.length ? (
+                  {(product.imageUrl ?? (i < previewUrls.length ? previewUrls[i] : null)) ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={previewUrls[i]}
+                      src={product.imageUrl ?? previewUrls[i]}
                       alt={product.name}
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />

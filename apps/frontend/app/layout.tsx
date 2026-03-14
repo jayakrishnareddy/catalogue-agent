@@ -3,9 +3,24 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { Gem } from "lucide-react";
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
 export const metadata = {
   title: "Catalogue Agent",
   description: "AI-powered jewellery catalogue",
+  metadataBase: new URL(baseUrl),
+  openGraph: {
+    title: "Catalogue Agent",
+    description: "AI-powered jewellery catalogue",
+    url: "/",
+    siteName: "Catalogue Agent",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Catalogue Agent",
+    description: "AI-powered jewellery catalogue",
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

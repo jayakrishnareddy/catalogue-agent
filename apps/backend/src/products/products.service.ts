@@ -103,6 +103,7 @@ export class ProductsService {
     );
 
     let draftIndex = 0;
+    // All drafts from the same image get the same image_url so multiple products from one photo share it
     const rowsToInsert = results.flatMap(({ drafts, imageUrl }) =>
       drafts.map((draft) => {
         const row = {

@@ -1,16 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { GripVertical, Pencil, Tag, Gem, Box, IndianRupee, ArrowLeft } from "lucide-react";
+import { Pencil, Tag, Gem, Box, IndianRupee, ArrowLeft, Filter } from "lucide-react";
 import Image from "next/image";
 import type { Product } from "../lib/api";
-import {
-  deleteProduct,
-  fetchProducts,
-  reorderProducts,
-  updateProduct,
-} from "../lib/api";
+import { deleteProduct, fetchProducts, updateProduct } from "../lib/api";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -41,33 +36,17 @@ function parseStoneColors(value: string): string[] {
     .map(capitalizeColor);
 }
 
+type PriceSort = "recent" | "price-asc" | "price-desc";
+
 function ProductCard({
   product,
-  isDragging,
-  onDragStart,
-  onDragEnd,
-  onDragOver,
   onEdit,
 }: {
   product: EditableProduct;
-  isDragging: boolean;
-  onDragStart: () => void;
-  onDragEnd: () => void;
-  onDragOver: (e: React.DragEvent) => void;
   onEdit: () => void;
 }) {
   return (
-    <div
-      draggable
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-      onDragOver={onDragOver}
-      className={`group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-200 cursor-grab active:cursor-grabbing ${
-        isDragging
-          ? "opacity-50 shadow-xl scale-[0.98]"
-          : "hover:shadow-md hover:-translate-y-0.5"
-      }`}
-    >
+    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
       {/* Image */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
         {product.imageUrl ? (
@@ -93,15 +72,6 @@ function ProductCard({
           }`}
         >
           {product.inStock !== false ? "In stock" : "Out of stock"}
-        </span>
-
-        {/* Drag handle */}
-        <span
-          className={`absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg bg-black/30 text-white backdrop-blur-sm transition-opacity ${
-            isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-          }`}
-        >
-          <GripVertical className="h-4 w-4" />
         </span>
       </div>
 
@@ -170,7 +140,8 @@ export default function DashboardPage() {
   const [products, setProducts] = useState<EditableProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [priceSort, setPriceSort] = useState<PriceSort>("recent");
+  const [includeOutOfStock, setIncludeOutOfStock] = useState(false);
   const [catalogueUrl, setCatalogueUrl] = useState<string>("");
   const [editProduct, setEditProduct] = useState<EditableProduct | null>(null);
   const [editDraft, setEditDraft] = useState<EditableProduct | null>(null);
@@ -188,6 +159,30 @@ export default function DashboardPage() {
     };
     void load();
   }, []);
+
+  const filteredAndSorted = useMemo(() => {
+    let list = includeOutOfStock
+      ? [...products]
+      : products.filter((p) => p.inStock !== false);
+    if (priceSort === "recent") {
+      list = [...list].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    } else if (priceSort === "price-asc") {
+      list = [...list].sort((a, b) => {
+        const pa = a.price ?? Infinity;
+        const pb = b.price ?? Infinity;
+        return pa - pb;
+      });
+    } else {
+      list = [...list].sort((a, b) => {
+        const pa = a.price ?? -Infinity;
+        const pb = b.price ?? -Infinity;
+        return pb - pa;
+      });
+    }
+    return list;
+  }, [products, includeOutOfStock, priceSort]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -238,40 +233,6 @@ export default function DashboardPage() {
     }
   };
 
-  const handleSyncOrder = async (id: string, toIndex: number) => {
-    setError(null);
-    try {
-      const updated = await reorderProducts(SHOP_ID, id, toIndex);
-      setProducts(updated);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to reorder");
-    }
-  };
-
-  const handleDragEnd = async () => {
-    const wasDragging = draggingId;
-    setDraggingId(null);
-    if (!wasDragging) return;
-    const toIndex = products.findIndex((p) => p.id === wasDragging);
-    if (toIndex === -1) return;
-    await handleSyncOrder(wasDragging, toIndex);
-  };
-
-  const handleDragOver = (e: React.DragEvent, productId: string) => {
-    e.preventDefault();
-    if (!draggingId || draggingId === productId) return;
-    setProducts((prev) => {
-      const fromIndex = prev.findIndex((p) => p.id === draggingId);
-      const toIndex = prev.findIndex((p) => p.id === productId);
-      if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex)
-        return prev;
-      const copy = [...prev];
-      const [item] = copy.splice(fromIndex, 1);
-      copy.splice(toIndex, 0, item);
-      return copy;
-    });
-  };
-
   const updateDraft = (field: keyof EditableProduct, value: unknown) => {
     setEditDraft((prev) => (prev ? { ...prev, [field]: value } : null));
   };
@@ -293,7 +254,7 @@ export default function DashboardPage() {
           </h1>
           <p className="text-sm text-muted-foreground">
             {products.length > 0
-              ? `${products.length} item${products.length !== 1 ? "s" : ""} · drag to reorder`
+              ? `${products.length} item${products.length !== 1 ? "s" : ""} · latest`
               : "Review and edit your products"}
           </p>
         </div>
@@ -319,12 +280,13 @@ export default function DashboardPage() {
               variant="outline"
               size="sm"
               className="rounded-xl"
-              onClick={() =>
+              onClick={() => {
+                const message = `Check out our catalogue:\n\n${catalogueUrl}`;
                 window.open(
-                  `https://wa.me/?text=${encodeURIComponent("Check out our catalogue: " + catalogueUrl)}`,
+                  `https://wa.me/?text=${encodeURIComponent(message)}`,
                   "_blank"
-                )
-              }
+                );
+              }}
             >
               Share on WhatsApp
             </Button>
@@ -336,6 +298,35 @@ export default function DashboardPage() {
         <p className="rounded-xl border border-red-500/30 bg-red-500/5 px-4 py-3 text-sm text-red-600">
           {error}
         </p>
+      )}
+
+      {/* Filters */}
+      {!loading && products.length > 0 && (
+        <div className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" aria-hidden />
+            <select
+              className="rounded-lg border border-input bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              value={priceSort}
+              onChange={(e) => setPriceSort(e.target.value as PriceSort)}
+            >
+              <option value="recent">Latest</option>
+              <option value="price-asc">Low → high</option>
+              <option value="price-desc">High → low</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-input accent-primary"
+                checked={includeOutOfStock}
+                onChange={(e) => setIncludeOutOfStock(e.target.checked)}
+              />
+              Include out of stock
+            </label>
+          </div>
+        </div>
       )}
 
       {/* Grid */}
@@ -369,16 +360,20 @@ export default function DashboardPage() {
             </Link>
           </Button>
         </div>
+      ) : filteredAndSorted.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border py-12 text-center">
+          <p className="text-sm text-muted-foreground">
+            {products.length > 0 && !includeOutOfStock
+              ? "No in-stock products. Check “Include out of stock” to see all."
+              : "No products yet."}
+          </p>
+        </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => (
+          {filteredAndSorted.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
-              isDragging={draggingId === product.id}
-              onDragStart={() => setDraggingId(product.id)}
-              onDragEnd={handleDragEnd}
-              onDragOver={(e) => handleDragOver(e, product.id)}
               onEdit={() => openEdit(product)}
             />
           ))}
