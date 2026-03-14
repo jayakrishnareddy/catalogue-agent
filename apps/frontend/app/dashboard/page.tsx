@@ -2,7 +2,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Pencil, Tag, Gem, Box, IndianRupee, ArrowLeft, Filter } from "lucide-react";
+import {
+  Pencil,
+  Tag,
+  Gem,
+  Box,
+  IndianRupee,
+  ArrowLeft,
+  Filter,
+} from "lucide-react";
 import Image from "next/image";
 import type { Product } from "../lib/api";
 import { deleteProduct, fetchProducts, updateProduct } from "../lib/api";
@@ -86,7 +94,10 @@ function ProductCard({
             variant="ghost"
             size="icon"
             className="h-7 w-7 shrink-0 rounded-lg text-muted-foreground hover:text-foreground"
-            onClick={(e) => { e.stopPropagation(); onEdit(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
             aria-label="Edit"
           >
             <Pencil className="h-3.5 w-3.5" />
@@ -125,7 +136,10 @@ function ProductCard({
         {/* Price */}
         {product.price != null && (
           <div className="mt-auto flex items-center gap-0.5 pt-1">
-            <IndianRupee className="h-4 w-4 text-foreground" strokeWidth={2.5} />
+            <IndianRupee
+              className="h-4 w-4 text-foreground"
+              strokeWidth={2.5}
+            />
             <span className="text-base font-bold text-foreground">
               {product.price.toLocaleString("en-IN")}
             </span>
@@ -152,7 +166,9 @@ export default function DashboardPage() {
         const data = await fetchProducts(SHOP_ID);
         setProducts(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load products");
+        setError(
+          err instanceof Error ? err.message : "Failed to load products",
+        );
       } finally {
         setLoading(false);
       }
@@ -166,7 +182,8 @@ export default function DashboardPage() {
       : products.filter((p) => p.inStock !== false);
     if (priceSort === "recent") {
       list = [...list].sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
     } else if (priceSort === "price-asc") {
       list = [...list].sort((a, b) => {
@@ -213,7 +230,7 @@ export default function DashboardPage() {
         model: editDraft.model,
       });
       setProducts((prev) =>
-        prev.map((p) => (p.id === editDraft.id ? { ...p, ...updated } : p))
+        prev.map((p) => (p.id === editDraft.id ? { ...p, ...updated } : p)),
       );
       closeEdit();
     } catch (err) {
@@ -270,7 +287,9 @@ export default function DashboardPage() {
                 size="sm"
                 className="h-6 shrink-0 px-2 text-xs"
                 onClick={async () => {
-                  try { await navigator.clipboard.writeText(catalogueUrl); } catch {}
+                  try {
+                    await navigator.clipboard.writeText(catalogueUrl);
+                  } catch {}
                 }}
               >
                 Copy
@@ -284,7 +303,7 @@ export default function DashboardPage() {
                 const message = `Check out our catalogue:\n\n${catalogueUrl}`;
                 window.open(
                   `https://wa.me/?text=${encodeURIComponent(message)}`,
-                  "_blank"
+                  "_blank",
                 );
               }}
             >
@@ -333,7 +352,10 @@ export default function DashboardPage() {
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="animate-pulse overflow-hidden rounded-2xl border border-border bg-card">
+            <div
+              key={i}
+              className="animate-pulse overflow-hidden rounded-2xl border border-border bg-card"
+            >
               <div className="aspect-[4/3] bg-muted" />
               <div className="space-y-3 p-4">
                 <div className="h-3.5 w-3/4 rounded-full bg-muted" />
@@ -350,11 +372,18 @@ export default function DashboardPage() {
       ) : products.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-24 text-center">
           <Gem className="mb-4 h-10 w-10 text-muted-foreground/40" />
-          <p className="text-sm font-medium text-muted-foreground">No products yet</p>
+          <p className="text-sm font-medium text-muted-foreground">
+            No products yet
+          </p>
           <p className="mt-1 text-xs text-muted-foreground/60">
             Go back and upload jewellery photos to get started.
           </p>
-          <Button asChild variant="outline" size="sm" className="mt-6 rounded-xl">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="mt-6 rounded-xl"
+          >
             <Link href="/">
               <ArrowLeft className="h-3.5 w-3.5" /> Go to home
             </Link>
@@ -381,7 +410,10 @@ export default function DashboardPage() {
       )}
 
       {/* Edit dialog */}
-      <Dialog open={!!editProduct} onOpenChange={(open) => !open && closeEdit()}>
+      <Dialog
+        open={!!editProduct}
+        onOpenChange={(open) => !open && closeEdit()}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Edit product</DialogTitle>
@@ -390,7 +422,12 @@ export default function DashboardPage() {
             <div className="grid gap-4 py-2">
               {editDraft.imageUrl && (
                 <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-muted">
-                  <Image src={editDraft.imageUrl} alt={editDraft.name} fill className="object-cover" />
+                  <Image
+                    src={editDraft.imageUrl}
+                    alt={editDraft.name}
+                    fill
+                    className="object-cover"
+                  />
                 </div>
               )}
               <div className="grid gap-2">
@@ -415,7 +452,9 @@ export default function DashboardPage() {
                   <input
                     className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     value={editDraft.category ?? ""}
-                    onChange={(e) => updateDraft("category", e.target.value || undefined)}
+                    onChange={(e) =>
+                      updateDraft("category", e.target.value || undefined)
+                    }
                   />
                 </div>
                 <div className="grid gap-2">
@@ -423,7 +462,9 @@ export default function DashboardPage() {
                   <input
                     className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     value={editDraft.model ?? ""}
-                    onChange={(e) => updateDraft("model", e.target.value.trim() || null)}
+                    onChange={(e) =>
+                      updateDraft("model", e.target.value.trim() || null)
+                    }
                   />
                 </div>
               </div>
@@ -433,7 +474,9 @@ export default function DashboardPage() {
                   className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   placeholder="e.g. Ruby, Emerald, Diamond"
                   value={formatStoneColors(editDraft.stoneColors)}
-                  onChange={(e) => updateDraft("stoneColors", parseStoneColors(e.target.value))}
+                  onChange={(e) =>
+                    updateDraft("stoneColors", parseStoneColors(e.target.value))
+                  }
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -444,7 +487,12 @@ export default function DashboardPage() {
                     className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     value={editDraft.price ?? ""}
                     onChange={(e) =>
-                      updateDraft("price", e.target.value === "" ? undefined : Number(e.target.value))
+                      updateDraft(
+                        "price",
+                        e.target.value === ""
+                          ? undefined
+                          : Number(e.target.value),
+                      )
                     }
                   />
                 </div>
@@ -463,12 +511,21 @@ export default function DashboardPage() {
             </div>
           )}
           <DialogFooter className="flex-row gap-2 sm:justify-between">
-            <Button variant="destructive" size="sm" onClick={handleDelete} className="mr-auto">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDelete}
+              className="mr-auto"
+            >
               Remove
             </Button>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={closeEdit}>Cancel</Button>
-              <Button size="sm" onClick={handleSave}>Save</Button>
+              <Button variant="outline" size="sm" onClick={closeEdit}>
+                Cancel
+              </Button>
+              <Button size="sm" onClick={handleSave}>
+                Save
+              </Button>
             </div>
           </DialogFooter>
         </DialogContent>
