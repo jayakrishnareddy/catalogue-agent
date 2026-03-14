@@ -12,6 +12,8 @@ export interface Product {
   price?: number;
   inStock?: boolean;
   imageUrl?: string;
+  stoneColors?: string[];
+  model?: string | null;
   createdAt: string;
 }
 
@@ -25,7 +27,7 @@ export class ProductsService {
     const { data, error } = await client
       .from("products")
       .select(
-        "id, shop_id, name, description, category, price, in_stock, image_url, created_at",
+        "id, shop_id, name, description, category, price, in_stock, image_url, stone_colors, model, created_at",
       )
       .eq("shop_id", shopId)
       .order("position", { ascending: true })
@@ -45,6 +47,8 @@ export class ProductsService {
         price: row.price ?? undefined,
         inStock: row.in_stock ?? undefined,
         imageUrl: row.image_url ?? undefined,
+        stoneColors: Array.isArray(row.stone_colors) ? row.stone_colors : undefined,
+        model: row.model ?? undefined,
         createdAt: row.created_at,
       })) ?? []
     );
@@ -76,6 +80,8 @@ export class ProductsService {
       price: null,
       in_stock: null,
       image_url: null,
+      stone_colors: draft.stoneColors && draft.stoneColors.length > 0 ? draft.stoneColors : [],
+      model: draft.model ?? null,
       position: index,
       created_at: now,
       updated_at: now,
@@ -85,7 +91,7 @@ export class ProductsService {
       .from("products")
       .insert(rowsToInsert)
       .select(
-        "id, shop_id, name, description, category, price, in_stock, image_url, created_at",
+        "id, shop_id, name, description, category, price, in_stock, image_url, stone_colors, model, created_at",
       );
 
     if (error) {
@@ -102,6 +108,8 @@ export class ProductsService {
         price: row.price ?? undefined,
         inStock: row.in_stock ?? undefined,
         imageUrl: row.image_url ?? undefined,
+        stoneColors: Array.isArray(row.stone_colors) ? row.stone_colors : undefined,
+        model: row.model ?? undefined,
         createdAt: row.created_at,
       })) ?? []
     );
@@ -125,6 +133,8 @@ export class ProductsService {
     if (patch.price !== undefined) updatePayload.price = patch.price;
     if (patch.inStock !== undefined) updatePayload.in_stock = patch.inStock;
     if (patch.imageUrl !== undefined) updatePayload.image_url = patch.imageUrl;
+    if (patch.stoneColors !== undefined) updatePayload.stone_colors = patch.stoneColors;
+    if (patch.model !== undefined) updatePayload.model = patch.model;
 
     const { data, error } = await client
       .from("products")
@@ -132,7 +142,7 @@ export class ProductsService {
       .eq("id", productId)
       .eq("shop_id", shopId)
       .select(
-        "id, shop_id, name, description, category, price, in_stock, image_url, created_at",
+        "id, shop_id, name, description, category, price, in_stock, image_url, stone_colors, model, created_at",
       )
       .single();
 
@@ -149,6 +159,8 @@ export class ProductsService {
       price: data.price ?? undefined,
       inStock: data.in_stock ?? undefined,
       imageUrl: data.image_url ?? undefined,
+      stoneColors: Array.isArray(data.stone_colors) ? data.stone_colors : undefined,
+      model: data.model ?? undefined,
       createdAt: data.created_at,
     };
   }

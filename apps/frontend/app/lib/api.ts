@@ -1,5 +1,5 @@
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
-export type Product = { id: string; shopId: string; name: string; description: string; category?: string; price?: number; inStock?: boolean; imageUrl?: string; createdAt: string };
+export type Product = { id: string; shopId: string; name: string; description: string; category?: string; price?: number; inStock?: boolean; imageUrl?: string; stoneColors?: string[]; model?: string | null; createdAt: string };
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) { const text = await response.text(); throw new Error(text || `Request failed with ${response.status}`); }
   return (await response.json()) as T;

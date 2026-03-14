@@ -34,7 +34,13 @@ export default function PublicCataloguePage({ params }: Props) {
               <article key={product.id} className="flex flex-col justify-between rounded-lg border bg-card p-4 text-sm shadow-sm">
                 <div className="space-y-1">
                   <h2 className="text-sm font-semibold leading-snug">{product.name}</h2>
+                  {product.model && <span className="text-[11px] text-muted-foreground">Model: {product.model}</span>}
                   {product.category && <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] uppercase text-muted-foreground">{product.category}</span>}
+                  {product.stoneColors && product.stoneColors.length > 0 && (
+                    <span className="text-[11px] text-muted-foreground">
+                      Stones: {product.stoneColors.map((c) => c.charAt(0).toUpperCase() + c.slice(1).toLowerCase()).join(", ")}
+                    </span>
+                  )}
                   {product.description && <p className="text-xs text-muted-foreground">{product.description}</p>}
                 </div>
                 <div className="mt-3 flex items-center justify-between">

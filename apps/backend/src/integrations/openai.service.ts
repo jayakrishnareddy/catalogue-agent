@@ -4,30 +4,48 @@ export interface DetectedProductDraft {
   name: string;
   description: string;
   category?: string;
+  stoneColors?: string[];
+  model?: string | null;
 }
 
 const EXTRACT_PRODUCTS_PROMPT = `You are analyzing a photo of jewellery. The image may contain ear rings, necklaces, or other pieces.
 
 Your task:
 1. Identify EVERY distinct jewellery item visible.
-2. For each item provide clean, catalogue-ready: "name" (short product name, e.g. "Gold Chain Necklace"), "category", "description" (1–2 sentence description including material/style).
+2. For each item provide: "name", "category", "description", "stone_colors", "model".
 
-Categories:
-- Main categories are only: "Ear rings" or "Necklaces".
-- For necklaces, set category to one of: "Necklaces - Gold", "Necklaces - Stone", "Necklaces - Metal", "Necklaces - Silver" (use the material that best fits the piece).
-- For ear rings, set category to "Ear rings" or, if material is clear, "Ear rings - Gold", "Ear rings - Silver", "Ear rings - Metal", or "Ear rings - Stone".
+Required for each product:
+- "name": Short product name (e.g. "Gold Chain Necklace").
+- "category": One of "Ear rings", "Necklaces", or with material: "Necklaces - Gold", "Necklaces - Stone", "Necklaces - Metal", "Necklaces - Silver", "Ear rings - Gold", "Ear rings - Silver", etc.
+- "description": 1–2 sentence description including material/style.
+- "stone_colors": **Always include this**. Array of stone/gem colors you see on the piece. Look at the image for any gems, stones, or colored accents. Use color names like "red", "blue", "emerald", "sapphire", "black", "white", "multi" etc. Use [] only if the piece clearly has no stones/gems.
+- "model": Alphanumeric code if visible on the piece or tag (e.g. "JR-401", "NC-102"); otherwise null.
 
-Return a JSON object with a single key "products" whose value is an array of objects. Each object must have exactly: "name", "description", "category". Use only valid JSON, no markdown or explanation.
+Return a JSON object with a single key "products" whose value is an array of objects. Every object must have: "name", "description", "category", "stone_colors" (array, never omit), "model" (string or null). Use only valid JSON, no markdown or explanation.
 
-Example: {"products":[{"name":"Gold Rope Chain","description":"Elegant gold rope chain necklace.","category":"Necklaces - Gold"},{"name":"Silver Stud Earrings","description":"Minimal silver stud ear rings.","category":"Ear rings - Silver"}]}
+Example: {"products":[{"name":"Gold Rope Chain","description":"Elegant gold rope chain necklace.","category":"Necklaces - Gold","stone_colors":[],"model":"NC-102"},{"name":"Ruby Stud Earrings","description":"Stud ear rings with ruby.","category":"Ear rings - Stone","stone_colors":["red"],"model":null},{"name":"Sapphire Pendant","description":"Silver pendant with blue stone.","category":"Necklaces - Silver","stone_colors":["blue","sapphire"],"model":null}]}
 
-List every different jewellery item you can see.`;
+List every different jewellery item you can see. Always include "stone_colors" for each item.`;
 
 function normalizeDraft(p: Record<string, unknown>): DetectedProductDraft {
+  const stoneColors = Array.isArray(p.stone_colors)
+    ? (p.stone_colors as unknown[]).map((c) => String(c).trim()).filter(Boolean)
+    : Array.isArray(p.stoneColors)
+      ? (p.stoneColors as unknown[]).map((c) => String(c).trim()).filter(Boolean)
+      : undefined;
+  const modelRaw = p.model;
+  const model =
+    modelRaw === null || modelRaw === undefined
+      ? null
+      : typeof modelRaw === "string" && modelRaw.trim()
+        ? modelRaw.trim()
+        : null;
   return {
     name: String(p.name ?? "Detected product").trim() || "Detected product",
     description: String(p.description ?? "Product detected from image.").trim(),
     category: typeof p.category === "string" ? p.category.trim() : undefined,
+    stoneColors: stoneColors?.length ? stoneColors : undefined,
+    model: model ?? undefined,
   };
 }
 

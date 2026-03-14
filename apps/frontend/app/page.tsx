@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { Upload } from "lucide-react";
 import { useRef, useState, useEffect, type ChangeEvent } from "react";
 import { Button } from "../components/ui/button";
 import { Skeleton } from "../components/ui/skeleton";
@@ -69,7 +70,9 @@ export default function HomePage() {
               <Button
                 variant={generatedProducts.length > 0 ? "outline" : "default"}
                 onClick={handleUploadClick}
+                className="gap-2"
               >
+                <Upload className="h-4 w-4" />
                 Upload jewellery photos
               </Button>
               {generatedProducts.length > 0 && (

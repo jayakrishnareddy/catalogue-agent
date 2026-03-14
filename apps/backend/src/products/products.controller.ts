@@ -42,6 +42,8 @@ export class ProductsController {
       price?: number;
       inStock?: boolean;
       imageUrl?: string;
+      stoneColors?: string[];
+      model?: string | null;
     },
   ) {
     return this.products.updateProduct(shopId, productId, body);
