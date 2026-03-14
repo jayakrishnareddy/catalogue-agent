@@ -1,1 +1,39 @@
-IyBDYXRhbG9ndWUgQWdlbnQgTW9ub3JlcG8KCioqR29hbCoqOiBBSS1wb3dlcmVkIGNhdGFsb2d1ZSBnZW5lcmF0b3IgZm9yIHNtYWxsIGxvY2FsIHNob3BzLgoKIyMgU3RhY2sKCi0gKipGcm9udGVuZCoqOiBOZXh0LmpzIChhcHAgcm91dGVyLCBUeXBlU2NyaXB0LCBUYWlsd2luZCwgc2hhZGNuLXN0eWxlIFVJKQotICoqQmFja2VuZCoqOiBOZXN0SlMtc3R5bGUgKFR5cGVTY3JpcHQpCi0gKipWaXNpb24qKjogR29vZ2xlIFZpc2lvbiBBUEkKLS **KkxMTSoqOiBHZW1pbmkgMS41IEZsYXNoCi0gKipEYXRhYmFzZSoqOiBTdXBhYmFzZQoKIyMgU3RydWN0dXJlCgotIGBhcHBzL2Zyb250ZW5kYDogTmV4dC5qcyBhcHAgZm9yIHNob3Agb3duZXIgZGFzaGJvYXJkICsgcHVibGljIGNhdGFsb2d1ZQotIGBhcHBzL2JhY2tlbmRgOiBOZXN0LXN0eWxlIEFQSSBzZXJ2ZXIgZm9yIHByb2R1Y3QgaW5nZXN0aW9uLCBBSSBwcm9jZXNzaW5nLCBjYXRhbG9ndWUgcXVlcmllcwoKIyMgUm9vdCBzY3JpcHRzCgpGcm9tIHRoZSBtb25vcmVwbyByb290OgoKLSAqKkluc3RhbGwgZGVwcyoqOiBgbnBtIGluc3RhbGxgCi0gKipSdW4gZnJvbnRlbmQqKjogYG5wbS runIGRldjpmcm9udGVuZGYKLSAqKlJ1biBiYWNrZW5kKio6IGBucG0gcnVuIGRldjpiYWNrZW5kYAo=
+## Catalogue Agent Monorepo
+
+**Goal**: AI-powered catalogue generator for small local shops.
+
+### Stack
+
+- **Frontend**: Next.js (app router, TypeScript, Tailwind, shadcn-style UI primitives)
+- **Backend**: NestJS-style structure (TypeScript)
+- **Vision**: Google Vision API
+- **LLM**: Gemini 1.5 Flash
+- **Database**: Supabase
+
+### Structure
+
+- `apps/frontend`: Next.js app for shop owner dashboard + public catalogue
+- `apps/backend`: Nest-style API server (`/api`) for product ingestion, AI processing, and catalogue queries
+
+### Root scripts
+
+From the monorepo root:
+
+- **Install deps**: `npm install` (uses workspaces)
+- **Run frontend**: `npm run dev:frontend`
+- **Run backend**: `npm run dev:backend`
+
+### Env setup
+
+Copy `.env.example` to `.env` and fill:
+
+- **Supabase**: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+- **Vision**: `GOOGLE_APPLICATION_CREDENTIALS` pointing to your JSON key file
+- **Gemini**: `GEMINI_API_KEY`
+
+### Next steps (MVP features)
+
+1. Wire `ProductsService` to Supabase tables for shops and products.
+2. Add image upload endpoint that uses `GoogleVisionService` + `GeminiService` to create product drafts.
+3. Build owner dashboard in `apps/frontend` for reviewing/editing products.
+4. Build public catalogue page with search, filters, and WhatsApp share links + Open Graph tags.
