@@ -1,0 +1,15 @@
+{
+  "name": "catalogue-agent",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/frontend",
+    "apps/backend"
+  ],
+  "scripts": {
+    "dev:frontend": "npm --workspace apps/frontend run dev",
+    "dev:backend": "npm --workspace apps/backend run start:dev",
+    "dev": "npm run dev:frontend & npm run dev:backend",
+    "build": "npm --workspace apps/frontend run build && npm --workspace apps/backend run build"
+  }
+}
