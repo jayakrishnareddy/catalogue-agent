@@ -1,8 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import type { Express } from "express";
-import { GoogleVisionService } from "../integrations/google-vision.service";
 import { getSupabaseAdminClient } from "../config/supabase.client";
-import { GeminiService } from "../integrations/gemini.service";
+import { OpenAIService } from "../integrations/openai.service";
 
 export interface Product {
   id: string;
@@ -18,10 +17,7 @@ export interface Product {
 
 @Injectable()
 export class ProductsService {
-  constructor(
-    private readonly vision: GoogleVisionService,
-    private readonly gemini: GeminiService,
-  ) {}
+  constructor(private readonly openai: OpenAIService) {}
 
   async listByShop(shopId: string): Promise<Product[]> {
     const client = getSupabaseAdminClient();
@@ -66,22 +62,13 @@ export class ProductsService {
         const mimeType = file.mimetype?.startsWith("image/")
           ? file.mimetype
           : "image/jpeg";
-        const fromGemini = await this.gemini.extractProductsFromImage(
-          file.buffer,
-          mimeType,
-        );
-        if (fromGemini.length > 0) return fromGemini;
-        return this.vision.extractProductsFromImage(file.buffer);
+        return this.openai.extractProductsFromImage(file.buffer, mimeType);
       }),
     );
 
     const drafts = draftsArrays.flat();
 
-    const refinedDrafts = await Promise.all(
-      drafts.map((draft) => this.gemini.refineProductDraft(draft)),
-    );
-
-    const rowsToInsert = refinedDrafts.map((draft, index) => ({
+    const rowsToInsert = drafts.map((draft, index) => ({
       shop_id: shopId,
       name: draft.name,
       description: draft.description,

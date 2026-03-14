@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useRef, useState, useEffect, type ChangeEvent } from "react";
 import { Button } from "../components/ui/button";
+import { Skeleton } from "../components/ui/skeleton";
 import type { Product } from "./lib/api";
 
 export default function HomePage() {
@@ -59,17 +60,27 @@ export default function HomePage() {
     <div className="flex min-h-[calc(100vh-8rem)] flex-col items-center justify-center">
       <div className="flex w-full max-w-2xl flex-col items-center justify-center space-y-8 text-center">
         <section className="space-y-4">
-          <h1 className="text-3xl font-semibold tracking-tight">Catalogue Agent for Local Shops</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">Catalogue Agent for Jewellery</h1>
           <p className="text-muted-foreground">
-            Upload messy shelf photos and let AI turn them into a clean, shareable product catalogue.
+            Upload photos of your jewellery and let AI build a clean, shareable catalogue.
           </p>
-          <div className="flex justify-center">
-            <Button
-              variant={generatedProducts.length > 0 ? "outline" : "default"}
-              onClick={handleUploadClick}
-            >
-              Upload product photos
-            </Button>
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex items-center gap-3">
+              <Button
+                variant={generatedProducts.length > 0 ? "outline" : "default"}
+                onClick={handleUploadClick}
+              >
+                Upload jewellery photos
+              </Button>
+              {generatedProducts.length > 0 && (
+                <Button size="sm" asChild>
+                  <Link href="/dashboard">Open dashboard</Link>
+                </Button>
+              )}
+            </div>
+            {error && generatedProducts.length === 0 && (
+              <p className="text-sm text-red-500">{error}</p>
+            )}
           </div>
           <input
             ref={fileInputRef}
@@ -81,44 +92,54 @@ export default function HomePage() {
           />
         </section>
 
-        {selectedFiles.length > 0 && (
-          <section className="flex w-full flex-col items-center space-y-3">
-            <h2 className="text-xl font-semibold">Selected photos</h2>
-            <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-              {previewUrls.map((url, i) => (
+        {isGenerating && (
+          <section className="w-full space-y-4 text-left">
+            <Skeleton className="h-7 w-48" />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: Math.max(3, selectedFiles.length) }).map((_, i) => (
                 <div
-                  key={url}
-                  className="aspect-square overflow-hidden rounded-lg border bg-muted"
+                  key={i}
+                  className="flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm"
                 >
-                  <img
-                    src={url}
-                    alt={selectedFiles[i]?.name ?? `Preview ${i + 1}`}
-                    className="h-full w-full object-cover"
-                  />
+                  <Skeleton className="aspect-square w-full shrink-0 rounded-none" />
+                  <div className="flex flex-1 flex-col gap-2 p-4">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-full" />
+                    <Skeleton className="h-3 w-4/5" />
+                  </div>
                 </div>
               ))}
             </div>
-            {isGenerating && (
-              <p className="text-sm text-muted-foreground">Generating catalogue...</p>
-            )}
-            {error && <p className="text-sm text-red-500">{error}</p>}
           </section>
         )}
 
         {generatedProducts.length > 0 && (
-          <section className="w-full space-y-3 rounded-lg border bg-card p-4 text-left">
+          <section className="w-full space-y-4 text-left">
             <h2 className="text-xl font-semibold">Generated catalogue</h2>
-            <div className="grid gap-3 md:grid-cols-3">
-              {generatedProducts.map((product) => (
-                <div key={product.id} className="rounded-md border p-3 text-sm">
-                  <div className="font-medium">{product.name}</div>
-                  <div className="text-muted-foreground">{product.description}</div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {generatedProducts.map((product, i) => (
+                <div
+                  key={product.id}
+                  className="flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm"
+                >
+                  {i < previewUrls.length ? (
+                    <div className="aspect-square w-full shrink-0 overflow-hidden bg-muted">
+                      <img
+                        src={previewUrls[i]}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  ) : null}
+                  <div className="flex flex-1 flex-col p-4">
+                    <div className="font-medium">{product.name}</div>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {product.description}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/dashboard">Open dashboard</Link>
-            </Button>
           </section>
         )}
       </div>

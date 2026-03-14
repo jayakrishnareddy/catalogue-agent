@@ -6,8 +6,7 @@
 
 - **Frontend**: Next.js (app router, TypeScript, Tailwind, shadcn-style UI primitives)
 - **Backend**: NestJS-style structure (TypeScript)
-- **Vision**: Google Vision API
-- **LLM**: Gemini 1.5 Flash
+- **Vision + LLM**: OpenAI GPT-4o (image input, structured product extraction)
 - **Database**: Supabase
 
 ### Structure
@@ -28,12 +27,11 @@ From the monorepo root:
 Copy `.env.example` to `.env` and fill:
 
 - **Supabase**: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
-- **Vision**: `GOOGLE_APPLICATION_CREDENTIALS` pointing to your JSON key file
-- **Gemini**: `GEMINI_API_KEY`
+- **OpenAI**: `OPENAI_API_KEY` for GPT-4o image-based product extraction
 
 ### Next steps (MVP features)
 
 1. Wire `ProductsService` to Supabase tables for shops and products.
-2. Add image upload endpoint that uses `GoogleVisionService` + `GeminiService` to create product drafts.
+2. Add image upload endpoint that uses `OpenAIService` (GPT-4o) to create product drafts from images.
 3. Build owner dashboard in `apps/frontend` for reviewing/editing products.
 4. Build public catalogue page with search, filters, and WhatsApp share links + Open Graph tags.

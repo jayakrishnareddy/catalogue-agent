@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { ReactNode } from "react";
-export const metadata = { title: "Catalogue Agent", description: "AI-powered catalogue for small shops" };
+export const metadata = { title: "Catalogue Agent", description: "AI-powered jewellery catalogue" };
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
