@@ -4,11 +4,13 @@
   "version": "1.0.0",
   "workspaces": [
     "apps/frontend",
-    "apps/backend"
+    "apps/backend",
+    "apps/rag"
   ],
   "scripts": {
     "dev:frontend": "npm --workspace apps/frontend run dev",
     "dev:backend": "npm --workspace apps/backend run start:dev",
+    "dev:rag": "npm --workspace apps/rag run dev",
     "dev": "npm run dev:frontend & npm run dev:backend",
     "build": "npm --workspace apps/frontend run build && npm --workspace apps/backend run build"
   }
