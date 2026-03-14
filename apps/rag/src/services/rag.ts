@@ -1,9 +1,19 @@
 import { openai, CHAT_MODEL } from "../lib/openai.js";
 import { retrieveProducts } from "./retrieval.js";
-import { buildSystemPrompt, buildUserMessage } from "../prompts/inventoryRagPrompt.js";
+import {
+  buildSystemPrompt,
+  buildUserMessage,
+} from "../prompts/inventoryRagPrompt.js";
 import type { ProductSummary, RAGResponse } from "../types.js";
 
-function toSummary(p: { id: string; title: string; price: number | null; stock_qty: number; category: string | null; stone_color: string | null }): ProductSummary {
+function toSummary(p: {
+  id: string;
+  title: string;
+  price: number | null;
+  stock_qty: number;
+  category: string | null;
+  stone_color: string | null;
+}): ProductSummary {
   return {
     id: p.id,
     title: p.title,
@@ -17,7 +27,9 @@ function toSummary(p: { id: string; title: string; price: number | null; stock_q
 /**
  * End-to-end RAG: retrieve products from DB, then generate a grounded natural-language answer.
  */
-export async function answerInventoryQuery(userQuery: string): Promise<RAGResponse> {
+export async function answerInventoryQuery(
+  userQuery: string,
+): Promise<RAGResponse> {
   const { products, filters } = await retrieveProducts(userQuery);
   const summaries: ProductSummary[] = products.map(toSummary);
 
@@ -34,7 +46,9 @@ export async function answerInventoryQuery(userQuery: string): Promise<RAGRespon
     temperature: 0.3,
   });
 
-  const answerText = completion.choices[0]?.message?.content?.trim() ?? "I couldn't generate a response. Please try again.";
+  const answerText =
+    completion.choices[0]?.message?.content?.trim() ??
+    "I couldn't generate a response. Please try again.";
 
   return {
     answerText,
