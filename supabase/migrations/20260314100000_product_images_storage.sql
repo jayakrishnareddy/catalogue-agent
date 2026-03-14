@@ -1,0 +1,11 @@
+-- Product images are stored in Supabase Storage, not in the database.
+-- The products.image column holds the public URL to the file.
+--
+-- Create the storage bucket manually in Supabase Dashboard:
+-- 1. Go to Storage > New bucket
+-- 2. Name: product-images
+-- 3. Public bucket: Yes (so getPublicUrl works)
+--
+-- Optional: Add RLS policy to allow public read if needed:
+-- CREATE POLICY "Public read" ON storage.objects FOR SELECT
+--   USING (bucket_id = 'product-images');

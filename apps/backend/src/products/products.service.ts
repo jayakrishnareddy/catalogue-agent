@@ -1,7 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import type { Express } from "express";
+import { mkdir, writeFile } from "fs/promises";
+import { join } from "path";
 import { getSupabaseAdminClient } from "../config/supabase.client";
 import { OpenAIService } from "../integrations/openai.service";
+
+const UPLOADS_DIR = join(process.cwd(), "uploads");
+const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:4000";
 
 export interface Product {
   id: string;
@@ -54,6 +59,29 @@ export class ProductsService {
     );
   }
 
+  /**
+   * Saves the image to the local uploads folder and returns the public URL.
+   * Files are stored under uploads/{shopId}/{timestamp}-{index}.{ext}
+   */
+  private async saveImageLocally(
+    shopId: string,
+    file: Express.Multer.File,
+    index: number,
+  ): Promise<string | null> {
+    const ext = file.mimetype?.includes("png") ? "png" : "jpg";
+    const filename = `${Date.now()}-${index}.${ext}`;
+    const dir = join(UPLOADS_DIR, shopId);
+    const filePath = join(dir, filename);
+
+    try {
+      await mkdir(dir, { recursive: true });
+      await writeFile(filePath, file.buffer);
+      return `${BACKEND_URL}/uploads/${shopId}/${filename}`;
+    } catch {
+      return null;
+    }
+  }
+
   async createDraftsFromImages(
     shopId: string,
     files: Express.Multer.File[],
@@ -61,31 +89,39 @@ export class ProductsService {
     const client = getSupabaseAdminClient();
     const now = new Date().toISOString();
 
-    const draftsArrays = await Promise.all(
-      files.map(async (file) => {
+    const results = await Promise.all(
+      files.map(async (file, fileIndex) => {
         const mimeType = file.mimetype?.startsWith("image/")
           ? file.mimetype
           : "image/jpeg";
-        return this.openai.extractProductsFromImage(file.buffer, mimeType);
+        const [drafts, imageUrl] = await Promise.all([
+          this.openai.extractProductsFromImage(file.buffer, mimeType),
+          this.saveImageLocally(shopId, file, fileIndex),
+        ]);
+        return { drafts, imageUrl };
       }),
     );
 
-    const drafts = draftsArrays.flat();
-
-    const rowsToInsert = drafts.map((draft, index) => ({
-      shop_id: shopId,
-      name: draft.name,
-      description: draft.description,
-      category: draft.category ?? null,
-      price: null,
-      in_stock: null,
-      image_url: null,
-      stone_colors: draft.stoneColors && draft.stoneColors.length > 0 ? draft.stoneColors : [],
-      model: draft.model ?? null,
-      position: index,
-      created_at: now,
-      updated_at: now,
-    }));
+    let draftIndex = 0;
+    const rowsToInsert = results.flatMap(({ drafts, imageUrl }) =>
+      drafts.map((draft) => {
+        const row = {
+          shop_id: shopId,
+          name: draft.name,
+          description: draft.description,
+          category: draft.category ?? null,
+          price: null,
+          in_stock: null,
+          image_url: imageUrl,
+          stone_colors: draft.stoneColors && draft.stoneColors.length > 0 ? draft.stoneColors : [],
+          model: draft.model ?? null,
+          position: draftIndex++,
+          created_at: now,
+          updated_at: now,
+        };
+        return row;
+      }),
+    );
 
     const { data, error } = await client
       .from("products")
