@@ -16,6 +16,9 @@ dist
 *.log
 .DS_Store
 
+# Local uploads (product images)
+uploads
+
 # IDE
 .idea
 .vscode
