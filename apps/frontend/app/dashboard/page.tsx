@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { GripVertical, Pencil, Tag, Gem, Box, IndianRupee } from "lucide-react";
+import Link from "next/link";
+import { GripVertical, Pencil, Tag, Gem, Box, IndianRupee, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import type { Product } from "../lib/api";
 import {
@@ -46,14 +47,14 @@ function ProductCard({
   onDragStart,
   onDragEnd,
   onDragOver,
-  onClick,
+  onEdit,
 }: {
   product: EditableProduct;
   isDragging: boolean;
   onDragStart: () => void;
   onDragEnd: () => void;
   onDragOver: (e: React.DragEvent) => void;
-  onClick: () => void;
+  onEdit: () => void;
 }) {
   return (
     <div
@@ -106,7 +107,7 @@ function ProductCard({
 
       {/* Body */}
       <div className="flex flex-1 flex-col gap-3 p-4">
-        {/* Name + Edit */}
+        {/* Name + edit button */}
         <div className="flex items-start justify-between gap-2">
           <h3 className="flex-1 text-sm font-semibold leading-snug text-foreground">
             {product.name || "—"}
@@ -115,10 +116,7 @@ function ProductCard({
             variant="ghost"
             size="icon"
             className="h-7 w-7 shrink-0 rounded-lg text-muted-foreground hover:text-foreground"
-            onClick={(e) => {
-              e.stopPropagation();
-              onClick();
-            }}
+            onClick={(e) => { e.stopPropagation(); onEdit(); }}
             aria-label="Edit"
           >
             <Pencil className="h-3.5 w-3.5" />
@@ -157,10 +155,7 @@ function ProductCard({
         {/* Price */}
         {product.price != null && (
           <div className="mt-auto flex items-center gap-0.5 pt-1">
-            <IndianRupee
-              className="h-4 w-4 text-foreground"
-              strokeWidth={2.5}
-            />
+            <IndianRupee className="h-4 w-4 text-foreground" strokeWidth={2.5} />
             <span className="text-base font-bold text-foreground">
               {product.price.toLocaleString("en-IN")}
             </span>
@@ -186,9 +181,7 @@ export default function DashboardPage() {
         const data = await fetchProducts(SHOP_ID);
         setProducts(data);
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to load products"
-        );
+        setError(err instanceof Error ? err.message : "Failed to load products");
       } finally {
         setLoading(false);
       }
@@ -287,11 +280,18 @@ export default function DashboardPage() {
     <div className="space-y-8">
       {/* Header */}
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+        <div className="space-y-1">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to home
+          </Link>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
             Catalogue
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             {products.length > 0
               ? `${products.length} item${products.length !== 1 ? "s" : ""} · drag to reorder`
               : "Review and edit your products"}
@@ -309,9 +309,7 @@ export default function DashboardPage() {
                 size="sm"
                 className="h-6 shrink-0 px-2 text-xs"
                 onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(catalogueUrl);
-                  } catch {}
+                  try { await navigator.clipboard.writeText(catalogueUrl); } catch {}
                 }}
               >
                 Copy
@@ -344,10 +342,7 @@ export default function DashboardPage() {
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="animate-pulse overflow-hidden rounded-2xl border border-border bg-card"
-            >
+            <div key={i} className="animate-pulse overflow-hidden rounded-2xl border border-border bg-card">
               <div className="aspect-[4/3] bg-muted" />
               <div className="space-y-3 p-4">
                 <div className="h-3.5 w-3/4 rounded-full bg-muted" />
@@ -364,12 +359,15 @@ export default function DashboardPage() {
       ) : products.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-24 text-center">
           <Gem className="mb-4 h-10 w-10 text-muted-foreground/40" />
-          <p className="text-sm font-medium text-muted-foreground">
-            No products yet
-          </p>
+          <p className="text-sm font-medium text-muted-foreground">No products yet</p>
           <p className="mt-1 text-xs text-muted-foreground/60">
             Go back and upload jewellery photos to get started.
           </p>
+          <Button asChild variant="outline" size="sm" className="mt-6 rounded-xl">
+            <Link href="/">
+              <ArrowLeft className="h-3.5 w-3.5" /> Go to home
+            </Link>
+          </Button>
         </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -381,13 +379,13 @@ export default function DashboardPage() {
               onDragStart={() => setDraggingId(product.id)}
               onDragEnd={handleDragEnd}
               onDragOver={(e) => handleDragOver(e, product.id)}
-              onClick={() => openEdit(product)}
+              onEdit={() => openEdit(product)}
             />
           ))}
         </div>
       )}
 
-      {/* Edit modal */}
+      {/* Edit dialog */}
       <Dialog open={!!editProduct} onOpenChange={(open) => !open && closeEdit()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -395,18 +393,11 @@ export default function DashboardPage() {
           </DialogHeader>
           {editDraft && (
             <div className="grid gap-4 py-2">
-              {/* Image preview */}
               {editDraft.imageUrl && (
                 <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-muted">
-                  <Image
-                    src={editDraft.imageUrl}
-                    alt={editDraft.name}
-                    fill
-                    className="object-cover"
-                  />
+                  <Image src={editDraft.imageUrl} alt={editDraft.name} fill className="object-cover" />
                 </div>
               )}
-
               <div className="grid gap-2">
                 <label className="text-sm font-medium">Name</label>
                 <input
@@ -429,9 +420,7 @@ export default function DashboardPage() {
                   <input
                     className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     value={editDraft.category ?? ""}
-                    onChange={(e) =>
-                      updateDraft("category", e.target.value || undefined)
-                    }
+                    onChange={(e) => updateDraft("category", e.target.value || undefined)}
                   />
                 </div>
                 <div className="grid gap-2">
@@ -439,9 +428,7 @@ export default function DashboardPage() {
                   <input
                     className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     value={editDraft.model ?? ""}
-                    onChange={(e) =>
-                      updateDraft("model", e.target.value.trim() || null)
-                    }
+                    onChange={(e) => updateDraft("model", e.target.value.trim() || null)}
                   />
                 </div>
               </div>
@@ -451,9 +438,7 @@ export default function DashboardPage() {
                   className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   placeholder="e.g. Ruby, Emerald, Diamond"
                   value={formatStoneColors(editDraft.stoneColors)}
-                  onChange={(e) =>
-                    updateDraft("stoneColors", parseStoneColors(e.target.value))
-                  }
+                  onChange={(e) => updateDraft("stoneColors", parseStoneColors(e.target.value))}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -464,12 +449,7 @@ export default function DashboardPage() {
                     className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     value={editDraft.price ?? ""}
                     onChange={(e) =>
-                      updateDraft(
-                        "price",
-                        e.target.value === ""
-                          ? undefined
-                          : Number(e.target.value)
-                      )
+                      updateDraft("price", e.target.value === "" ? undefined : Number(e.target.value))
                     }
                   />
                 </div>
@@ -479,9 +459,7 @@ export default function DashboardPage() {
                       type="checkbox"
                       className="h-4 w-4 rounded border-input accent-primary"
                       checked={editDraft.inStock ?? false}
-                      onChange={(e) =>
-                        updateDraft("inStock", e.target.checked)
-                      }
+                      onChange={(e) => updateDraft("inStock", e.target.checked)}
                     />
                     In stock
                   </label>
@@ -490,21 +468,12 @@ export default function DashboardPage() {
             </div>
           )}
           <DialogFooter className="flex-row gap-2 sm:justify-between">
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleDelete}
-              className="mr-auto"
-            >
+            <Button variant="destructive" size="sm" onClick={handleDelete} className="mr-auto">
               Remove
             </Button>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={closeEdit}>
-                Cancel
-              </Button>
-              <Button size="sm" onClick={handleSave}>
-                Save
-              </Button>
+              <Button variant="outline" size="sm" onClick={closeEdit}>Cancel</Button>
+              <Button size="sm" onClick={handleSave}>Save</Button>
             </div>
           </DialogFooter>
         </DialogContent>

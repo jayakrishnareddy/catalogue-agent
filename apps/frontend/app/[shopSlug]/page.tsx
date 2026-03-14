@@ -1,7 +1,8 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import Image from "next/image";
-import { Gem, Tag, Box, IndianRupee, Search } from "lucide-react";
+import { Gem, Tag, Box, IndianRupee, Search, ArrowLeft } from "lucide-react";
 import { fetchProducts, type Product } from "../lib/api";
 import { queryRag, type RAGProductSummary } from "../lib/ragApi";
 
@@ -108,6 +109,13 @@ export default function PublicCataloguePage({ params }: Props) {
     <div className="space-y-8">
       {/* Header */}
       <header className="space-y-1">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back to dashboard
+        </Link>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Shop catalogue
         </h1>
