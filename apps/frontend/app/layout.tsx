@@ -1,4 +1,4 @@
-import "../styles/globals.css";
+import "./globals.css";
 import type { ReactNode } from "react";
 export const metadata = { title: "Catalogue Agent", description: "AI-powered catalogue for small shops" };
 export default function RootLayout({ children }: { children: ReactNode }) {

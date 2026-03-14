@@ -14,7 +14,7 @@ export async function updateProduct(shopId: string, productId: string, patch: Pa
 }
 export async function deleteProduct(shopId: string, productId: string): Promise<void> {
   const res = await fetch(`${backendUrl}/api/shops/${shopId}/products/${productId}`, { method: "DELETE" });
-  if (!res.ok) { const text = await response.text(); throw new Error(text || `Delete failed with ${res.status}`); }
+  if (!res.ok) { const text = await res.text(); throw new Error(text || `Delete failed with ${res.status}`); }
 }
 export async function reorderProducts(shopId: string, id: string, toIndex: number): Promise<Product[]> {
   const res = await fetch(`${backendUrl}/api/shops/${shopId}/products/reorder`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, toIndex }) });
